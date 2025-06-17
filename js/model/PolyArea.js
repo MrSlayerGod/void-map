@@ -66,13 +66,6 @@ export class PolyArea {
             latLngs.push(this.positions[i].toCentreLatLng(this.map));
         }
 
-        for (var i = 0; i < latLngs.length; i++) {
-            var point = this.map.project(latLngs[i], this.map.getMaxZoom());
-            point.x -= RS_TILE_WIDTH_PX / 2;
-            point.y += RS_TILE_HEIGHT_PX / 2;
-            latLngs[i] = this.map.unproject(point, this.map.getMaxZoom());
-        }
-
         return L.polygon(
             latLngs, {
                 color: "#33b5e5",
