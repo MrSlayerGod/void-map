@@ -16,8 +16,6 @@ import { RegionLookupControl } from './controls/region_lookup_control.js';
 import { TitleLabel } from './controls/title_label.js';
 
 $(document).ready(function () {
-    const urlParams = new URLSearchParams(window.location.search);
-
     const tileSize = 256;
     const numTiles = 256;
     const startX = 50
@@ -45,39 +43,10 @@ $(document).ready(function () {
 
     map.plane = 0;
 
-    // Parse markers from URL: `markers=x1,y1:x2,y2:...` or a single `marker=x,y[,z]`
-    function parseCoordList(str) {
-        const pairs = [];
-        if (!str) {
-            return pairs;
-        }
-        const parts = str.split(':');
-        for (const part of parts) {
-            const m = part.match(/^\s*(-?\d+)\s*,\s*(-?\d+)\s*$/);
-            if (m) {
-                pairs.push({ x: parseInt(m[1], 10), y: parseInt(m[2], 10) });
-            }
-        }
-        return pairs;
-    }
-
-    const markers = parseCoordList(urlParams.get('markers'));
-    if (markers.length === 0 && urlParams.get('marker')) {
-        const m = urlParams.get('marker').match(/^\s*(-?\d+)\s*,\s*(-?\d+)\s*(?:,\s*(-?\d+)\s*)?$/);
-        if (m) {
-            markers.push({ x: parseInt(m[1], 10), y: parseInt(m[2], 10) });
-        }
-    }
-
-    const centreZ = parseInt(urlParams.get('centreZ'), 10);
-    if (!isNaN(centreZ) && centreZ >= 0 && centreZ <= 3) {
-        map.plane = centreZ;
-    }
-
     const CustomTileLayer = L.TileLayer.extend({
         getTileUrl: function (coords) {
             // return `./map_tiles/${map.plane}/${coords.z}/${coords.x}/${-coords.y}.png`;
-            return `https://cdn.jsdelivr.net/gh/MrSlayerGod/void-map-tiles@master/${map.plane}/${coords.z}/${coords.x}/${-coords.y}.png`;
+            return `https://raw.githubusercontent.com/GregHib/void-map-tiles/master/${map.plane}/${coords.z}/${coords.x}/${-coords.y}.png`;
         },
     })
     map.updateMapPath = function () {
@@ -124,47 +93,6 @@ $(document).ready(function () {
             prevMouseRect.addTo(map);
         }
     });
-
-    // Deep-link support: centre the view and draw spawn markers from URL params
-    const markerLayer = L.layerGroup().addTo(map);
-
-    function toLatLngList() {
-        return markers.map(function (c) {
-            return Position.toCentreLatLng(map, c.x, c.y);
-        });
-    }
-
-    function clampZoom(z) {
-        z = parseInt(z, 10);
-        if (isNaN(z)) {
-            return 8;
-        }
-        return Math.min(11, Math.max(4, z));
-    }
-
-    function applyUrlView() {
-        const latlngs = toLatLngList();
-
-        if (latlngs.length > 1) {
-            map.fitBounds(L.latLngBounds(latlngs), { padding: [40, 40], maxZoom: 11 });
-        } else if (latlngs.length === 1) {
-            map.setView(latlngs[0], clampZoom(urlParams.get('zoom')), { animate: false });
-        } else {
-            const centreX = parseInt(urlParams.get('centreX'), 10);
-            const centreY = parseInt(urlParams.get('centreY'), 10);
-            if (!isNaN(centreX) && !isNaN(centreY)) {
-                map.setView(Position.toCentreLatLng(map, centreX, centreY), clampZoom(urlParams.get('zoom')), { animate: false });
-            }
-        }
-
-        markers.forEach(function (c) {
-            L.marker(Position.toCentreLatLng(map, c.x, c.y))
-                .bindPopup(`<b>(${c.x}, ${c.y})</b>`)
-                .addTo(markerLayer);
-        });
-    }
-
-    applyUrlView();
 
     const setUrlParams = () => {
         const mapCentre = map.getBounds().getCenter()
