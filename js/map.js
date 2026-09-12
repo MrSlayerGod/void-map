@@ -37,9 +37,9 @@ $(document).ready(function () {
         crs: L.CRS.SimpleOffset,
         maxBounds: bounds,
         center: [tileSize * startY, tileSize * startX],
-        minZoom: 4,
+        minZoom: 10,
         maxZoom: 11,
-        zoom: 8,
+        zoom: 10,
         zoomControl: false,
     });
 
@@ -139,7 +139,7 @@ $(document).ready(function () {
         if (isNaN(z)) {
             return 8;
         }
-        return Math.min(11, Math.max(4, z));
+        return Math.min(11, Math.max(10, z));
     }
 
     function applyUrlView() {

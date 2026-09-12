@@ -28,12 +28,8 @@ export var PlaneControl = L.Control.extend({
     },
 
     _increasePlane: function() {
-        if (this._map.plane == 3) {
-            return;
-        }
-        this._map.plane++;
-        this._map.updateMapPath();
-        this._dispatchPlaneChangedEvent();
+        // Only plane 0 has tiles in void-map-tiles at present
+        return;
     },
 
     _decreasePlane: function() {
