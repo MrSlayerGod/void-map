@@ -43,6 +43,14 @@ $(document).ready(function () {
 
     map.plane = 0;
 
+    // Deep link support: centreX/centreY/centreZ/zoom + marker=x,y[,z] from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const centreZ = parseInt(urlParams.get('centreZ'), 10);
+    if (!isNaN(centreZ) && centreZ >= 0 && centreZ <= 3) {
+        map.plane = centreZ;
+    }
+
     const CustomTileLayer = L.TileLayer.extend({
         getTileUrl: function (coords) {
             // return `./map_tiles/${map.plane}/${coords.z}/${coords.x}/${-coords.y}.png`;
@@ -63,6 +71,31 @@ $(document).ready(function () {
 
     map.updateMapPath();
     map.getContainer().focus();
+
+    // Centre the view on the requested coordinates and draw the marker pin
+    const centreX = parseInt(urlParams.get('centreX'), 10);
+    const centreY = parseInt(urlParams.get('centreY'), 10);
+
+    if (!isNaN(centreX) && !isNaN(centreY)) {
+        let requestedZoom = parseInt(urlParams.get('zoom'), 10);
+        if (isNaN(requestedZoom)) {
+            requestedZoom = 8;
+        }
+        requestedZoom = Math.min(11, Math.max(4, requestedZoom));
+        map.setView(Position.toCentreLatLng(map, centreX, centreY), requestedZoom, { animate: false });
+    }
+
+    const markerParam = urlParams.get('marker');
+    if (markerParam) {
+        const m = markerParam.match(/^\s*(-?\d+)\s*,\s*(-?\d+)(?:\s*,\s*(-?\d+))?\s*$/);
+        if (m) {
+            const mx = parseInt(m[1], 10);
+            const my = parseInt(m[2], 10);
+            L.marker(Position.toCentreLatLng(map, mx, my))
+                .bindPopup(`<b>(${mx}, ${my})</b>`)
+                .addTo(map);
+        }
+    }
 
     map.addControl(new TitleLabel());
     map.addControl(new CoordinatesControl());
